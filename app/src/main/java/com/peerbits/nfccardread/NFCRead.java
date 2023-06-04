@@ -38,6 +38,8 @@ public class NFCRead extends Activity {
     private ImageView ivBack;
     private TextToSpeech tts;
 
+    private Identifiers identifiers = new Identifiers();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,16 +134,20 @@ public class NFCRead extends Activity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-// Initialize Text-to-Speech engine with engine package name
-
-        //String text = "Hello, how are you?";
-        speak("EEL004");
 
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         byte[] id = tag.getId();
         String tagId = bytesToHex(id);
-        Log.i("tag", "Meu cartão do RU tem TagID " + tagId);
-        showToast("Tag detected with id: " + tagId);
+
+        if(tagId != null) {
+            showToast("Tag detected with id: " + tagId);
+            Log.i("tag", "Cartão possuí tagId " + tagId);
+            //speak("Um, dois, três, testando aaaaaaaaaaaaaaaa");
+            String classroom_identifier = identifiers.map.get(tagId);
+            if (classroom_identifier != null) {
+                speak("Você está na sala de aula " + classroom_identifier);
+            }
+        }
         patchTag(tag);
         if (tag != null) {
             readFromNFC(tag, intent);
