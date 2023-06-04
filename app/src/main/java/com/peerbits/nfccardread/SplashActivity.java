@@ -21,7 +21,7 @@ public class SplashActivity extends Activity {
             @Override
             public void run() {
                 /* Create an Intent that will start the Menu-Activity. */
-                Intent i = new Intent(context, NfcHome.class);
+                Intent i = new Intent(context, NFCRead.class);
                 startActivity(i);
                 finish();
             }

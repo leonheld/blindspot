@@ -34,22 +34,10 @@
                 android:resource="@xml/nfc_tech_filter" />
         </activity>
 
-
-        <activity
-            android:name=".NfcHome"
-            android:screenOrientation="portrait" />
         <activity
             android:name=".NFCRead"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".NFCWrite"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".NFCCardReading"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".NFCPayActivity"
-            android:screenOrientation="portrait" />
+
     </application>
 
 </manifest>
