@@ -16,15 +16,18 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Context;
 
 import com.bhargavms.dotloader.DotLoader;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class NFCRead extends Activity {
 
@@ -33,6 +36,7 @@ public class NFCRead extends Activity {
     private NfcAdapter mNfcAdapter;
     private DotLoader dotloader;
     private ImageView ivBack;
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +80,68 @@ public class NFCRead extends Activity {
             mNfcAdapter.disableForegroundDispatch(this);
     }
 
+    private String bytesToHex(byte[] bytes) {
+        char[] hexArray = "0123456789ABCDEF".toCharArray();
+        char[] hexChars = new char[bytes.length * 2];
+        for (int i = 0; i < bytes.length; i++) {
+            int v = bytes[i] & 0xFF;
+            hexChars[i * 2] = hexArray[v >>> 4];
+            hexChars[i * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+    public void showToast(String message) {
+        Context context = getApplicationContext();
+        CharSequence text = message;
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+    }
+
+    public void speak(final String text){ // make text 'final'
+
+        // ... do not declare tts here
+
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS){
+                    Locale brazil_locale = new Locale("pt", "BR");
+                    int result = tts.setLanguage(brazil_locale);
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED){
+                        Log.e("TTS", "Language not supported");
+                    } else {
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+                    }
+                } else {
+                    Log.e("TTS", "Failed");
+                }
+            }
+        });
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
+// Initialize Text-to-Speech engine with engine package name
+
+        //String text = "Hello, how are you?";
+        speak("EEL004");
+
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        byte[] id = tag.getId();
+        String tagId = bytesToHex(id);
+        Log.i("tag", "Meu cartão do RU tem TagID " + tagId);
+        showToast("Tag detected with id: " + tagId);
         patchTag(tag);
         if (tag != null) {
             readFromNFC(tag, intent);
@@ -91,7 +154,6 @@ public class NFCRead extends Activity {
             return null;
 
         String[] sTechList = oTag.getTechList();
-
         Parcel oParcel, nParcel;
 
         oParcel = Parcel.obtain();
@@ -121,6 +183,7 @@ public class NFCRead extends Activity {
         int mc_idx = -1;
 
         for (int idx = 0; idx < sTechList.length; idx++) {
+            Log.i("tag", " has TechList: " + sTechList[idx]);
             if (sTechList[idx] == NfcA.class.getName()) {
                 nfca_idx = idx;
             } else if (sTechList[idx] == MifareClassic.class.getName()) {
